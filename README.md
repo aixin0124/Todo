@@ -146,11 +146,7 @@ The personal information section is as follows:
 
 
 
-### 💜支持作者
 
-如果觉得有所帮助的话，一点点支持就可以大大激励创作者的热情，感谢！
-
-<img src="public/img/ricocc/zanshangma.jpg" alt="ricocc-wechat" width="280" height="auto" style="display:inline-block;margin:12px;">
 
 
 
