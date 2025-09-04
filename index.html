@@ -10,8 +10,10 @@
     <meta name="keywords" content="无需登录, 不用账号,online todo, todo, todo list,在线Todo,网页todo,备忘录, Todo清单, 在线Todo清单,无需注册登陆,极简清单,即开即用,便签, 提醒, 日程, 记事本, 记事, 待办事件,online todolist, online 清单,online 待办事项,极简的待办事项" />
     <meta name="description" content="一款优秀的设计简洁的online todolist 网页版本应用,极简的待办事项,Todo清单,无需注册,无需登录, 不用账号,数据安全, 存储在H5浏览器本地缓存, 提供工作和生活辅助! 在线Todo清单,免登录,做最好的 online todo list 清单应用." />
     <link type="favicon" rel="shortcut icon" href="public/img/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700&display=swap" rel="stylesheet"> 
     <link href="public/css/normalize.css" rel="stylesheet" media="screen">
     <link href="public/css/style.min.css" rel="stylesheet" media="screen">
+    <link href="public/css/clock.css" rel="stylesheet" media="screen">
     <script>
         // 自动判断语言并切换
         const browserLanguage = navigator.language || navigator.userLanguage;
@@ -32,11 +34,11 @@
                 const alertBox = document.createElement('div'); // 提示框
                 alertBox.className = 'custom-alert';
                 alertBox.innerHTML = `
-<div class="custom-alert-title">${title}</div>
-<div class="custom-alert-content">${message}</div>
-<div class="custom-alert-buttons">
-    <button class="custom-alert-btn confirm">确定</button>
-</div>
+                    <div class="custom-alert-title">${title}</div>
+                    <div class="custom-alert-content">${message}</div>
+                    <div class="custom-alert-buttons">
+                        <button class="custom-alert-btn confirm">确定</button>
+                    </div>
                 `;
                 overlay.appendChild(alertBox);
                 document.body.appendChild(overlay);
@@ -273,7 +275,15 @@
                     </div>
 
                 </div>
+
+                <div id="clock">
+                    <p class="date">{{ clockDate }}</p>
+                    <p class="time">{{ clockTime }}</p>
+                    <p class="text">DIGITAL CLOCK with Vue.js</p>
+                </div>
             </div>
+
+            
 
              <!-- 自定义个人的信息 -->
             <div class="nav" draggable="false">
@@ -348,9 +358,9 @@
                     <a href="javascript:;" target="_self" class="zh active" draggable="false">中</a>
                 </div>
             </div>
-
         </div>
     </div>
+
 
     <script>
         // localStorage 存储数据
@@ -390,7 +400,9 @@
                     windowWidth: document.documentElement.clientWidth,
                     slogan: this.getSlogan(),
                     isEditing: false,
-                    originalSlogan: ""
+                    originalSlogan: "",
+                    clockTime: '',
+                    clockDate: '',
                 }
             },
             // 监测 todos 列表的变化，将变化存储到 local storage
@@ -603,6 +615,23 @@
                     that.windowWidth = window.fullWidth; // 宽
                     })()
                 };
+
+                // 时钟定时器
+                var week = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+                function zeroPadding(num, digit) {
+                    var zero = '';
+                    for(var i = 0; i < digit; i++) {
+                        zero += '0';
+                    }
+                    return (zero + num).slice(-digit);
+                }
+                function updateTime() {
+                    var cd = new Date();
+                    that.clockTime = zeroPadding(cd.getHours(), 2) + ':' + zeroPadding(cd.getMinutes(), 2) + ':' + zeroPadding(cd.getSeconds(), 2);
+                    that.clockDate = zeroPadding(cd.getFullYear(), 4) + '-' + zeroPadding(cd.getMonth()+1, 2) + '-' + zeroPadding(cd.getDate(), 2) + ' ' + week[cd.getDay()];
+                }
+                setInterval(updateTime, 1000);
+                updateTime();
             },
             directives: {
                 focus: {
@@ -746,7 +775,7 @@
             // logAllIds(data);
         }
     </script>
-
+        
 
 </body>
 </html>

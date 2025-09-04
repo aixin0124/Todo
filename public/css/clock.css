@@ -1,0 +1,31 @@
+
+/* ...原有样式... */
+#clock {
+    font-family: 'Quicksand', 'Share Tech Mono', monospace, cursive;
+    color: #1c9eca;
+    text-align: center;
+    /* 去掉绝对定位相关属性 */
+    position: static;
+    left: auto;
+    top: auto;
+    transform: none;
+    margin: 10px auto 30px auto; /* 距离顶部30px，居中 */
+    text-shadow: 0 0 20px rgb(255,214,233),  0 0 20px rgba(248,217,102);
+    background: none;
+    box-shadow: none;
+}
+#clock .time {
+    letter-spacing: 0.05em;
+    font-size: 36px;
+    padding: 5px 0;
+    font-weight: bold; /* 整体加粗 */
+}
+#clock .date {
+    letter-spacing: 0.1em;
+    font-size: 18px;
+}
+#clock .text {
+    letter-spacing: 0.1em;
+    font-size: 12px;
+    padding: 10px 0 0;
+}
