@@ -1,6 +1,7 @@
 
 /* ...原有样式... */
 #clock {
+    user-select: none;  
     font-family: 'Quicksand', 'Share Tech Mono', monospace, cursive;
     color: #1c9eca;
     text-align: center;

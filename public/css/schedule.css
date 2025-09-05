@@ -1,0 +1,126 @@
+.schedule-card {
+    user-select: none;  
+    position: absolute;
+    top: 112px;
+    left: 2vw;
+    width:20vw;
+    margin-bottom: 10vw;
+    background: #E0EEF7;
+    border-radius: 18px;
+    box-shadow: 4px 4px 0px #33322E;
+    padding: 22px 18px 18px 18px;
+    transition: box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border: 2px solid #33322E;
+    animation: card-fade-in 0.7s cubic-bezier(.4,1.6,.6,1);
+}
+
+.schedule-card h2 {
+    font-size: 22px;
+    color: #f99cc7;
+    font-weight: 800;
+    margin-bottom: 10px;
+    text-align: center;
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 0 #b05d83;
+}
+
+.schedule-day-selector {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 4px;
+}
+.schedule-day-selector li {
+    flex: 1;
+    list-style: none;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 6px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    color: #8CD4CB;
+    background: #fff;
+}
+.schedule-day-selector li.active,
+.schedule-day-selector li:hover {
+    background: #f8d966;
+    color: #fff;
+    border-color: #FFD6E9;
+}
+
+
+
+.day-title {
+    font-size: 18px;
+    color: #e88fba;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1.5px solid #f8d966;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px #f8d96622;
+}
+.schedule-table th, .schedule-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #ffe7f3;
+    text-align: left;
+}
+.schedule-table th {
+    background: #fffbe7;
+    color: #be9d53;
+    font-weight: 700;
+}
+.schedule-table tr:last-child td {
+    border-bottom: none;
+}
+.schedule-table tr:hover {
+    background: #fff6f9;
+}
+.time-cell { color: #6c757d; font-weight: 500; }
+.course-cell { font-weight: 600; color: #69675f;}
+.teacher-cell { color: #a0a0a0; font-style: italic; }
+.location-cell { color: #644454; font-weight: 500; }
+.no-class {
+    text-align: center;
+    color: #b0b0b0;
+    font-style: italic;
+    padding: 12px 0;
+}
+
+@media (max-width: 900px) {
+    .schedule-card {
+        position: static;
+        width: 95%;
+        margin: 5vh auto 100px auto;
+        left: unset;
+        top: unset;
+    }
+}
+
+/* 浮出动画 */
+@keyframes card-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-40px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
