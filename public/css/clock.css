@@ -11,7 +11,7 @@
     top: auto;
     transform: none;
     margin: 10px auto 30px auto; /* 距离顶部30px，居中 */
-    text-shadow: 0 0 20px rgb(255,214,233),  0 0 20px rgba(248,217,102);
+    text-shadow: 0 0 20px rgb(168,230,207),  0 0 20px rgba(255,211,182);
     background: none;
     box-shadow: none;
 }
