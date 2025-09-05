@@ -1,5 +1,10 @@
 # Uiineed Todo List 介绍
 
+首先感谢原作者的带来的灵感，最初是想实现自己的博客网站的，最后因为技术不佳告终，然后偶然的机会看到了todo应用，简约精美非常符合个人审美，然后借着学习的机会拿到了源代码并且二创，目前加入了时间和课程表之类的组件，后续会想到什么就写什么。
+纯属兴趣爱好，感谢支持！
+
+<img src="public/img/ricocc/v1.0.jpg" alt="ricocc-wechat" width="640" height="auto" style="border-radius:12px;display:inline-block;margin:12px;">
+
 [📍 English Intro Click Here](#intro)
 
 <img src="public/img/ricocc/preview-uiineed-todo-list-zh.jpg" alt="ricocc-wechat" width="640" height="auto" style="border-radius:12px;display:inline-block;margin:12px;">
