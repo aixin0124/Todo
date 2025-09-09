@@ -36,7 +36,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showCourse(day) {
         const courses = courseSchedule[day] || [];
-        // dayTitle.textContent = `${dayTitles[day]} 课程安排`;
+        const noClassTip = document.getElementById('no-class-tip');
+        // 判断是否为周六(6)或周日(0)
+        if(day === 6 || day === 0){
+            scheduleBody.innerHTML = '';
+            if(noClassTip){
+                noClassTip.style.display = '';
+                noClassTip.textContent = `今天${day === 6 ? '周六' : '周日'}没有课喔`;
+            }
+            return;
+        } else {
+            if(noClassTip){
+                noClassTip.style.display = 'none';
+                noClassTip.textContent = '';
+            }
+        }
         scheduleBody.innerHTML = '';
         if (courses.length > 0) {
             courses.forEach(course => {
@@ -58,8 +72,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 初始化显示星期一
-    showCourse(1);
+   
+    // 自动检测今天是周几（1=周一，5=周五，周六日默认显示周一）
+    let today = new Date().getDay(); // 0=周日, 1=周一, ..., 6=周六
+    let initDay = (today >= 1 && today <= 5) ? today : 1;
+    showCourse(initDay);
+    // 设置选中态
+    dayItems.forEach(li => li.classList.remove('active'));
+    if(dayItems[initDay-1]) dayItems[initDay-1].classList.add('active');
 
 
     function getCurrentWeek() {
