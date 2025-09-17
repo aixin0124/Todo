@@ -5,12 +5,13 @@ document.addEventListener('DOMContentLoaded', function() {
             { time: "10:00-12:20", name: "区块导论", teacher: "段佳腾", location: "九教623" }
         ],
         2: [
-            { time: "10:00-11:30", name: "大数据哦", teacher: "郭小角", location: "九教620" },
+            { time: "10:00-11:30", name: "大数据", teacher: "郭小角", location: "九教620" },
             { time: "14:00-15:30", name: "web双", teacher: "段佳腾", location: "八教503" }
         ],
         3: [
-            { time: "08:10-11:30", name: "软件工程", teacher: "徐怀胜", location: "九教622" },
-            { time: "15:50-16:30", name: "大数据", teacher: "郭小角", location: "八教504" },
+            { time: "08:10-9:40", name: "软件工程", teacher: "徐怀胜", location: "九教622" },
+            { time: "10:00-11:30", name: "软件工程", teacher: "徐怀胜", location: "九教517" }, 
+            { time: "15:50-17:30", name: "大数据", teacher: "郭小角", location: "八教504" },
             { time: "20:00-21:30", name: "形式-7", teacher: "杨晓玲", location: "八教301" }
             
         ],
