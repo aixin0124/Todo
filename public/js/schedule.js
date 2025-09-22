@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
         2: [
             { time: "10:00-11:30", name: "大数据", teacher: "郭小角", location: "九教620" },
             { time: "14:00-15:30", name: "web双", teacher: "段佳腾", location: "八教503" },
-            { time: "18:10-19:50", name: "英语逻辑", teacher: "李卓华", location: "八教311" }
+            { time: "18:20-19:50", name: "英语逻辑", teacher: "李卓华", location: "八教311" }
 
         ],
         3: [
