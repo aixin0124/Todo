@@ -104,6 +104,8 @@
     <!-- Vue 2.x  Todo List   使用CDN就无需引入本地文件 -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script> -->
     <script src="public/js/vue.js"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.46.1/dist/umd/supabase.js"></script>
 </head>
 <body>
     
@@ -264,6 +266,7 @@
                             </li>
                             <li v-if="todos.length"><input type="button" class="btn-small clear-all" value="清除全部"
                                     @click="clearAll"> </li>
+                                <li v-if="recycleBin.length"><input type="button" class="btn-small" value="清空回收站" @click="emptyRecycleBin"> </li>
                         </ul>
                         <ul class="todo-func-list datasave">
                           <li v-if="leftTodosCount">
@@ -404,28 +407,85 @@
 
 
     <script>
-        // localStorage 存储数据
-        var STORAGE_KEY = 'uiineed-todos';
-        var todoStorage = {
-            fetch: function () {
-                var todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-                todos.forEach(function (todo, index) {
-                    todo.id = index;
-                });
-                todoStorage.uid = todos.length;
-                return todos
+        // Supabase 适配器（用数据库替代 localStorage）
+        // 在此填写你的 Supabase 项目配置，或在全局设置 window.SUPABASE_URL / window.SUPABASE_ANON_KEY 覆盖
+        const SUPABASE_URL = window.SUPABASE_URL || 'https://rgfphrzqdbfpckbpneqn.supabase.co';
+        const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnZnBocnpxZGJmcGNrYnBuZXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3ODA3MTYsImV4cCI6MjA4MTM1NjcxNn0.b1fImHayqLQQHgahMBaRWE6Z1hqVM9Cjx-ojMKli64g';
+
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 公共共享模式：不做用户隔离，不需要登录
+        async function ensureSession() { /* no-op in public mode */ }
+
+        const SupabaseTodo = {
+            async fetchTodos() {
+                await ensureSession();
+                const { data, error } = await sb
+                    .from('todos')
+                    .select('id,title,completed,removed,created_at')
+                    .eq('removed', false)
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
             },
-            save: function (todos) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
+            async insertTodo(title) {
+                await ensureSession();
+                const { data, error } = await sb
+                    .from('todos')
+                    .insert({ title, completed: false, removed: false })
+                    .select('id,title,completed,removed,created_at')
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+            async updateTodo(id, patch) {
+                await ensureSession();
+                const { data, error } = await sb
+                    .from('todos')
+                    .update(patch)
+                    .eq('id', id)
+                    .select('id,title,completed,removed,created_at')
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+            async markRemoved(ids, removed = true) {
+                await ensureSession();
+                const { error } = await sb
+                    .from('todos')
+                    .update({ removed })
+                    .in('id', ids)
+                if (error) throw error;
+            },
+            async insertMany(items) {
+                await ensureSession();
+                const payload = (items || [])
+                    .filter(x => x && String(x.title || '').trim() !== '')
+                    .map(x => ({
+                        title: String(x.title || ''),
+                        completed: !!x.completed,
+                        removed: false,
+                    }));
+                if (!payload.length) return;
+                const { error } = await sb.from('todos').insert(payload);
+                if (error) throw error;
+            },
+            async deleteMany(ids) {
+                if (!ids || !ids.length) return;
+                const { error } = await sb
+                  .from('todos')
+                  .delete()
+                  .in('id', ids);
+                if (error) throw error;
             }
-        }
+        };
     </script>
     <script>
         var app = new Vue({
             el: '#todo-app',
             data: function () {
                 return {
-                    todos: todoStorage.fetch(),
+                    todos: [],
                     newTodoTitle: '',
                     editedTodo: null,
                     intention: 'all', //默认为 all
@@ -446,18 +506,13 @@
                     clockDate: '',
                 }
             },
-            // 监测 todos 列表的变化，将变化存储到 local storage
+            // 监测变化（不再写回 localStorage）
             watch: {
                 windowWidth (val) {
                     let that = this;
                     console.log("实时屏幕宽度：",val);
                 },
-                todos: {
-                    handler: function (todos) {
-                        todoStorage.save(todos)
-                    },
-                    deep: true
-                }
+                // 如需持久化排序，可在此添加批量保存逻辑
             },
             methods: {
                 editText() {
@@ -499,50 +554,66 @@
                 shuffle: function () {
                     this.filteredTodos = _.shuffle(this.filteredTodos);
                 },
-                addTodo: function (e) {
+                addTodo: async function (e) {
                     if (this.newTodoTitle === '') {
                         this.checkEmpty = true;
                         return
                     }else{
                     }
-                    this.todos.unshift({
-                        id: todoStorage.uid++,
-                        title: this.newTodoTitle,
-                        completed: false,
-                        removed: false,
-                    });
-                    this.newTodoTitle = '';
-                    this.checkEmpty = false;
-                    this.delayTime = '0';
+                    try {
+                        const created = await SupabaseTodo.insertTodo(this.newTodoTitle);
+                        this.todos.unshift(created);
+                        this.newTodoTitle = '';
+                        this.checkEmpty = false;
+                        this.delayTime = '0';
+                    } catch (err) {
+                        alert('保存到数据库失败：' + (err.message || err), '错误');
+                    }
 
 
                 },
-                markAsCompleted: function (todo) {
+                markAsCompleted: async function (todo) {
+                    const old = todo.completed;
                     todo.completed = true;
+                    try { await SupabaseTodo.updateTodo(todo.id, { completed: true }); } catch (e) { todo.completed = old; alert('更新失败：' + (e.message || e),'错误'); }
                 },
-                markAsUncompleted: function (todo) {
+                markAsUncompleted: async function (todo) {
+                    const old = todo.completed;
                     todo.completed = false
+                    try { await SupabaseTodo.updateTodo(todo.id, { completed: false }); } catch (e) { todo.completed = old; alert('更新失败：' + (e.message || e),'错误'); }
                 },
                 markAllAsCompleted: function () {
                     confirm('确认一键勾选完成全部待办事项？').then((confirmed) => {
                         if (confirmed) {
-                            this.todos.map(function (todo) {
-                                if (!todo.completed) todo.completed = true;
+                            this.todos.map(async (todo) => {
+                                if (!todo.completed) {
+                                    todo.completed = true;
+                                    try { await SupabaseTodo.updateTodo(todo.id, { completed: true }); } catch (e) {}
+                                }
                             })
                         }
                     }); 
                 },
-                removeTodo: function (todo) {
-                    let removedTodo = this.todos.splice(this.todos.indexOf(todo), 1)[0];
-                    removedTodo.removed = true;
-                    this.recycleBin.unshift(removedTodo);
-                    let pos = this.todos.indexOf(todo);
+                removeTodo: async function (todo) {
+                    try {
+                        await SupabaseTodo.updateTodo(todo.id, { removed: true });
+                        let removedTodo = this.todos.splice(this.todos.indexOf(todo), 1)[0];
+                        removedTodo.removed = true;
+                        this.recycleBin.unshift(removedTodo);
+                    } catch (e) {
+                        alert('删除失败：' + (e.message || e),'错误');
+                    }
                 },
-                restoreTodo: function (todo) {
-                    todo.removed = false;
-                    this.todos.unshift(todo);
-                    let pos = this.recycleBin.indexOf(todo);
-                    this.recycleBin.splice(pos, 1);
+                restoreTodo: async function (todo) {
+                    try {
+                        await SupabaseTodo.updateTodo(todo.id, { removed: false });
+                        todo.removed = false;
+                        this.todos.unshift(todo);
+                        let pos = this.recycleBin.indexOf(todo);
+                        this.recycleBin.splice(pos, 1);
+                    } catch (e) {
+                        alert('还原失败：' + (e.message || e),'错误');
+                    }
                 },
                 editdTodo: function (todo) {
                     this.editedTodo = {
@@ -551,7 +622,7 @@
                     }
 
                 },
-                lineFeed: function(event) {
+                lineFeed: async function(event) {
                     if (event.keyCode == 13 && event.ctrlKey ){
                             this.newTodoTitle = this.newTodoTitle + '\n';
                         } else {
@@ -561,24 +632,29 @@
                                     return
                                 }else{
                                 }
-                                this.todos.unshift({
-                                    id: todoStorage.uid++,
-                                    title: this.newTodoTitle,
-                                    completed: false,
-                                    removed: false,
-                                });
-                                this.newTodoTitle = '';
-                                this.checkEmpty = false;
-                                this.delayTime = '0';
+                                try {
+                                    const created = await SupabaseTodo.insertTodo(this.newTodoTitle);
+                                    this.todos.unshift(created);
+                                    this.newTodoTitle = '';
+                                    this.checkEmpty = false;
+                                    this.delayTime = '0';
+                                } catch (err) {
+                                    alert('保存到数据库失败：' + (err.message || err), '错误');
+                                }
 
                         }
                     // this.newTodoTitle = this.newTodoTitle + '\n';
                 },
-                editDone: function (todo) {
+                editDone: async function (todo) {
                     if (todo.title === '') {
                         this.removeTodo(todo)
                     }
-                    this.editedTodo = null;
+                    try {
+                        await SupabaseTodo.updateTodo(todo.id, { title: todo.title });
+                        this.editedTodo = null;
+                    } catch (e) {
+                        alert('保存失败：' + (e.message || e),'错误');
+                    }
                 },
                 cancelEdit: function (todo) {
                     todo.title = this.editedTodo.title;
@@ -587,19 +663,36 @@
                 clearCompleted: function () {
                     confirm('确认清除全部已完成的代办事项?').then((confirmed) => {
                         if (confirmed) {
-                            this.completedTodos.map(todo => todo.removed = true);
-                            this.recycleBin.unshift(...this.completedTodos);
-                            this.todos = this.leftTodos;
+                            const ids = this.completedTodos.map(t => t.id);
+                            SupabaseTodo.markRemoved(ids, true).then(() => {
+                                this.completedTodos.map(todo => todo.removed = true);
+                                this.recycleBin.unshift(...this.completedTodos);
+                                this.todos = this.leftTodos;
+                            }).catch(e => alert('清除失败：' + (e.message || e),'错误'))
                         }
                     });
                 },
                 clearAll: function () {
                     confirm('确认清除全部待办事项?').then((confirmed) => {
                         if (confirmed) {
-                            this.todos.map(todo => todo.removed = true);
-                            this.recycleBin.unshift(...this.todos);
-                            this.todos = []
+                            const ids = this.todos.map(t => t.id);
+                            SupabaseTodo.markRemoved(ids, true).then(() => {
+                                this.todos.map(todo => todo.removed = true);
+                                this.recycleBin.unshift(...this.todos);
+                                this.todos = []
+                            }).catch(e => alert('清除失败：' + (e.message || e),'错误'))
                         }
+                    });
+                },
+                emptyRecycleBin: function () {
+                    if (!this.recycleBin.length) return;
+                    confirm('确认永久删除回收站内的所有事项？此操作不可恢复').then((confirmed) => {
+                        if (!confirmed) return;
+                        const ids = this.recycleBin.map(t => t.id);
+                        SupabaseTodo.deleteMany(ids).then(() => {
+                            this.recycleBin = [];
+                            alert('回收站已清空（永久删除）。');
+                        }).catch(e => alert('清空失败：' + (e.message || e),'错误'));
                     });
                 },
                 //拖拽 ------------------
@@ -673,6 +766,17 @@
                 }
                 setInterval(updateTime, 1000);
                 updateTime();
+
+                // 初始化加载数据库中的 Todos
+                (async () => {
+                    try {
+                        const list = await SupabaseTodo.fetchTodos();
+                        this.todos = Array.isArray(list) ? list : [];
+                    } catch (e) {
+                        console.warn('加载数据库待办失败，使用空列表', e);
+                        this.todos = [];
+                    }
+                })();
             },
             directives: {
                 focus: {
@@ -723,12 +827,8 @@
         })
     </script>
     <script>
-        // 调用 fetch 方法从 localStorage 获取数据
-        var fetchedTodos = todoStorage.fetch();
-        // 在控制台打印获取到的数据
-        // console.log("Stored Todos:", fetchedTodos);
         const handleClickDownload = () => {
-            const todosText = JSON.stringify(todoStorage.fetch(), null, 2);
+            const todosText = JSON.stringify(app.todos, null, 2);
             const date = new Date().toISOString().replace(/-|:|\.\d+/g, '');
             const fileName = `todos-${date.slice(0, 8)}-${date.slice(9, 15)}.txt`;
             
@@ -755,11 +855,11 @@
                 this.parentNode.appendChild(tempFileInput);
 
                 // 为文件输入元素添加change事件监听器
-                tempFileInput.addEventListener('change', function(event) {
+                tempFileInput.addEventListener('change', async function(event) {
                     var file = event.target.files[0];
                     if (!file) return alert('没有选择文件！', '错误');
                     var reader = new FileReader();
-                    reader.onload = function(e) {
+                    reader.onload = async function(e) {
                         var content = e.target.result;
                         try {
                             var importedData;
@@ -774,21 +874,11 @@
                             } else {
                                 throw new Error('不支持的文件类型');
                             }
-                            // 从localStorage获取当前数据
-                            var currentTodos = todoStorage.fetch() || [];
-                            // 获取当前数据的数量，用于生成新的唯一id
-                            var nextIdIndex = currentTodos.length;
-                            // 遍历importedData，更新每一项的id
-                            importedData.forEach((item, index) => {
-                                item.id = nextIdIndex + index;
-                            });
-                            // 将新导入的数据追加到现有数据中
-                            var updatedTodos = currentTodos.concat(importedData);
-                            // 更新localStorage
-                            todoStorage.save(updatedTodos);
-                            // 更新页面内容
-                            updatePageContent(updatedTodos);
-                            alert('文件导入成功，数据已追加！');
+                            // 写入数据库
+                            await SupabaseTodo.insertMany(importedData);
+                            const list = await SupabaseTodo.fetchTodos();
+                            updatePageContent(list);
+                            alert('文件导入成功，已写入数据库！');
                         } catch (error) {
                             alert('文件解析错误，请确保文件格式正确：' + error.message, '错误');
                         }
