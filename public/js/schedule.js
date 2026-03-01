@@ -1,28 +1,21 @@
 document.addEventListener('DOMContentLoaded', function() {
     const courseSchedule = {
         1: [
-            { time: "08:10-09:40", name: "web", teacher: "段佳腾", location: "八教504" },
-            { time: "10:00-12:20", name: "区块导论", teacher: "段佳腾", location: "九教623" }
+            { time: "09:00-11:30", name: "移动软件", teacher: "汤慧颖", location: "八教504" },
         ],
         2: [
-            { time: "10:00-11:30", name: "大数据", teacher: "郭小角", location: "九教620" },
-            { time: "14:00-15:30", name: "web双", teacher: "段佳腾", location: "八教503" },
-            { time: "18:20-19:50", name: "英语逻辑", teacher: "李卓华", location: "八教311" }
-
         ],
         3: [
-            { time: "08:10-9:40", name: "软件工程", teacher: "徐怀胜", location: "九教622" },
-            { time: "10:00-11:30", name: "软件工程", teacher: "徐怀胜", location: "九教517" }, 
-            { time: "15:50-17:30", name: "大数据", teacher: "郭小角", location: "八教504" },
-            { time: "20:00-21:30", name: "形式-7", teacher: "杨晓玲", location: "八教301" }
+            { time: "08:10-11:30", name: "服务器", teacher: "黄庆安", location: "八教504" },
+            { time: "20:00-21:30", name: "大学生", teacher: "张惠琳", location: "二教604" },
             
         ],
         4: [
-            { time: "08:10-09:40", name: "职业8周", teacher: "段佳腾", location: " 九教619" },
-            { time: "10:00-11:30", name: "区块后端", teacher: "曾洁波", location: "九教509" }
+            { time: "15:50-17:20", name: "形势政策", teacher: "杨迎", location: " 八教302" },
         ],
         5: [
-            { time: "10:00-11:30", name: "区块后端", teacher: "曾洁波", location: "九教509" }
+            { time: "08:10-11:30", name: "应用开发", teacher: "周煜博", location: "九教502" },
+            { time: "14:00-15:30", name: "智能合约", teacher: "江观华", location: "九教502" }
         ]
     };
     const dayTitles = {
@@ -76,18 +69,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
    
-    // 自动检测今天是周几（1=周一，5=周五，周六日默认显示周一）
-    let today = new Date().getDay(); // 0=周日, 1=周一, ..., 6=周六
-    let initDay = (today >= 1 && today <= 5) ? today : 1;
+    // 自动检测今天是周几
+    // 0=周日, 1=周一, ..., 6=周六
+    // 需求：周六/周日要显示“今天周六/周日没有课喔”，而不是回退到周一课表
+    const today = new Date().getDay();
+    const initDay = today; // 直接用当天（周末会触发 showCourse 的提示分支）
     showCourse(initDay);
-    // 设置选中态
+
+    // 设置选中态：只有周一~周五在选择器里，周末则清空选中态
     dayItems.forEach(li => li.classList.remove('active'));
-    if(dayItems[initDay-1]) dayItems[initDay-1].classList.add('active');
+    if (initDay >= 1 && initDay <= 5) {
+        if (dayItems[initDay - 1]) dayItems[initDay - 1].classList.add('active');
+    }
 
 
     function getCurrentWeek() {
-        // 开学日：2025-09-08（周一）
-        const startDate = new Date(2025, 8, 8); // 月份从0开始，8代表9月
+        // 开学日：2026-03-02（周一）
+        const startDate = new Date(2026, 2, 2); // 月份从0开始，2代表3月
         const now = new Date();
         // 只保留日期部分，忽略时分秒
         startDate.setHours(0,0,0,0);
