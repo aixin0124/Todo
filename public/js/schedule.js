@@ -7,11 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
         ],
         3: [
             { time: "08:10-11:30", name: "服务器", teacher: "黄庆安", location: "八教504" },
-<<<<<<< HEAD
-            { time: "20:00-21:30", name: "大学生", teacher: "张惠琳", location: "二教604" },
-=======
+
             { time: "20:00-21:30", name: "大学生", teacher: "张惠琳", location: "二教603" },
->>>>>>> ee154ecdaad617951f86beb07355e4b62a95ca84
             
         ],
         4: [
